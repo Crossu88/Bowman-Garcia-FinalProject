@@ -23,7 +23,7 @@ class Camera
   private:
     glm::mat4 projection;
     glm::mat4 view;
-    glm::vec3 m_speed;
+    glm::vec3 velocity = glm::vec3(0.0f);
 
     // Movement related variables
     glm::vec3 viewPos = glm::vec3(0.0f, 12.0f, 20.0f);

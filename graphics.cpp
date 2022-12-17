@@ -99,11 +99,12 @@ void Graphics::CreateScene()
 	// Starship
 	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
 
+	// Player ship mesh
+	m_playerShip = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
+	m_playerShip->SetModel(m_playerShip->GetModel() * glm::scale(glm::vec3(0.01f)));
+
 	// Create player ship
-	m_player = new Ship(
-		new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png"),
-		m_camera
-	);
+	m_player = new Ship(m_playerShip, m_camera);
 }
 
 void Graphics::AnimateScene(double time)

@@ -25,7 +25,7 @@ void Camera::Update(double dt)
 	ProcessInput();
 	CalcLookDirection();
 
-	viewPos += m_speed * glm::vec3(dt);
+	viewPos += velocity * glm::vec3(dt);
 	// view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
@@ -35,7 +35,7 @@ void Camera::SetSpeed(glm::vec3 speedVec)
 	newSpeed += speedVec.x * glm::normalize(glm::cross(viewFront, viewUp));
 	newSpeed += speedVec.y * viewUp;
 	newSpeed += speedVec.z * viewFront;
-	m_speed = newSpeed;
+	velocity = newSpeed;
 }
 
 void Camera::ProcessInput()
