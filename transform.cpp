@@ -1,5 +1,15 @@
 #include "transform.h"
 
+Transform::Transform()
+{
+
+}
+
+Transform::~Transform()
+{
+
+}
+
 glm::mat4 Transform::GetMatrix()
 {
     return m_transformMatrix;

@@ -1,5 +1,6 @@
 
 #include "engine.h"
+#include "input.h"
 #include "glm/ext.hpp"
 
 Engine::Engine(const char* name, int width, int height)
@@ -28,6 +29,10 @@ bool Engine::Initialize()
     printf("The window failed to initialize.\n");
     return false;
   }
+
+  // Create the input singleton
+  auto input = Input::GetInstance();
+  input->SetWindow(m_window);
 
   // Locks the mouse in the window
   glfwSetInputMode(m_window->getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -61,44 +66,12 @@ void Engine::Run()
 
 void Engine::ProcessInput()
 {
-    if (glfwGetKey(m_window->getWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(m_window->getWindow(), true);
+    // Get access to input
+    auto input = Input::GetInstance();
 
-    double lastMouseY = mouseY;
-    double lastMouseX = mouseX;
-    double sensitivity = 0.01;
-    glfwGetCursorPos(m_window->getWindow(), &mouseX, &mouseY);
-
-    glm::vec3 speed = glm::vec3(0.0f);
-    double xDiff = (mouseX - lastMouseX) * sensitivity;
-    double yDiff = (mouseY - lastMouseY) * sensitivity;
-
-    if (GetKeyDown(GLFW_KEY_W) || GetKeyDown(GLFW_KEY_UP))
-        speed -= glm::vec3(0.0f, 0.0f, 10.0f);
-    if (GetKeyDown(GLFW_KEY_S) || GetKeyDown(GLFW_KEY_DOWN))
-        speed += glm::vec3(0.0f, 0.0f, 10.0f);
-    if (GetKeyDown(GLFW_KEY_A) || GetKeyDown(GLFW_KEY_LEFT))
-        speed += glm::vec3(10.0f, 0.0f, 0.0f);
-    if (GetKeyDown(GLFW_KEY_D) || GetKeyDown(GLFW_KEY_RIGHT))
-        speed -= glm::vec3(10.0f, 0.0f, 0.0f);
-
-    m_graphics->getCamera()->SetSpeed(speed);
-    m_graphics->getCamera()->UpdateCamera(mouseX, mouseY);
-}
-
-int Engine::GetKey(int key) 
-{
-    return glfwGetKey(m_window->getWindow(), key);
-}
-
-bool Engine::GetKeyDown(int key)
-{
-    return GetKey(key) == GLFW_PRESS;
-}
-
-bool Engine::GetKeyReleased(int key)
-{
-    return GetKey(key) == GLFW_RELEASE;
+    // Quit on pressing the escape key
+    if (input->GetKeyDown(GLFW_KEY_ESCAPE))
+      glfwSetWindowShouldClose(m_window->getWindow(), true);
 }
 
 double Engine::getDT()

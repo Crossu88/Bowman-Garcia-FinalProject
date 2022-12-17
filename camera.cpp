@@ -22,7 +22,9 @@ bool Camera::Initialize(int w, int h)
 
 void Camera::Update(double dt)
 {
-	viewPos += speed * glm::vec3(dt);
+	ProcessInput();
+
+	viewPos += m_speed * glm::vec3(dt);
 	view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
@@ -32,29 +34,42 @@ void Camera::SetSpeed(glm::vec3 speedVec)
 	newSpeed += speedVec.x * glm::normalize(glm::cross(viewFront, viewUp));
 	newSpeed += speedVec.y * viewUp;
 	newSpeed += speedVec.z * viewFront;
-	speed = newSpeed;
+	m_speed = newSpeed;
 }
 
-void Camera::UpdateCamera(double xpos, double ypos)
+void Camera::ProcessInput()
 {
-	if (!mouseSet)
+	auto input = Input::GetInstance();
+
+	ProcessMouseInput(input);
+	ProcessKeyboardInput(input);
+}
+
+void Camera::ProcessMouseInput(Input* input)
+{
+	auto cursorPos = input->GetCursorPos();
+	
+	double xpos = cursorPos.x;
+	double ypos = cursorPos.y;
+
+	if (mouseNotSet)
 	{
 		lastX = xpos;
 		lastY = ypos;
-		mouseSet = true;
+		mouseNotSet = false;
 	}
 
-	float xdiff = xpos - lastX;
-	float ydiff = lastY - ypos;
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
 	lastX = xpos;
 	lastY = ypos;
 
 	float sensitivity = 0.1f;
-	xdiff *= sensitivity;
-	ydiff *= sensitivity;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
 
-	yaw += xdiff;
-	pitch += ydiff;
+	yaw += xoffset;
+	pitch += yoffset;
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;
@@ -68,6 +83,24 @@ void Camera::UpdateCamera(double xpos, double ypos)
     lookDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     viewFront = glm::normalize(lookDirection);
 }
+
+void Camera::ProcessKeyboardInput(Input* input)
+{
+    glm::vec3 speed = glm::vec3(0.0f);
+
+    if (input->GetKeyDown(GLFW_KEY_W) || input->GetKeyDown(GLFW_KEY_UP))
+        speed -= glm::vec3(0.0f, 0.0f, 10.0f);
+    if (input->GetKeyDown(GLFW_KEY_S) || input->GetKeyDown(GLFW_KEY_DOWN))
+        speed += glm::vec3(0.0f, 0.0f, 10.0f);
+    if (input->GetKeyDown(GLFW_KEY_A) || input->GetKeyDown(GLFW_KEY_LEFT))
+        speed += glm::vec3(10.0f, 0.0f, 0.0f);
+    if (input->GetKeyDown(GLFW_KEY_D) || input->GetKeyDown(GLFW_KEY_RIGHT))
+        speed -= glm::vec3(10.0f, 0.0f, 0.0f);
+
+	SetSpeed(speed);
+}
+
+// Getters
 
 glm::mat4 Camera::GetProjection()
 {

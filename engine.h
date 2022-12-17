@@ -17,10 +17,9 @@ class Engine
     bool Initialize();
     void Run();
     void ProcessInput();
-    int GetKey(int key);
-    bool GetKeyDown(int key);
-    bool GetKeyReleased(int key);
-    // unsigned int getDT();
+    // int GetKey(int key);
+    // bool GetKeyDown(int key);
+    // bool GetKeyReleased(int key);
     double getDT();
     long long GetCurrentTimeMillis();
     void Display(GLFWwindow*, double);

@@ -115,6 +115,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,10 +146,12 @@
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="engine.cpp" />
     <ClCompile Include="graphics.cpp" />
+    <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="object.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="ship.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="transform.cpp" />
@@ -159,9 +162,11 @@
     <ClInclude Include="engine.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="graphics_headers.h" />
+    <ClInclude Include="input.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="object.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="ship.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="transform.h" />

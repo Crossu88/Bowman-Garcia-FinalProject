@@ -7,6 +7,9 @@
 class Transform
 {
     public:
+        Transform();
+        ~Transform();
+
         glm::mat4 GetMatrix();
         glm::vec3 GetLocalPosition();
         glm::vec3 GetLocalAngle();
