@@ -23,9 +23,10 @@ bool Camera::Initialize(int w, int h)
 void Camera::Update(double dt)
 {
 	ProcessInput();
+	CalcLookDirection();
 
 	viewPos += m_speed * glm::vec3(dt);
-	view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
+	// view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
 void Camera::SetSpeed(glm::vec3 speedVec)
@@ -76,12 +77,19 @@ void Camera::ProcessMouseInput(Input* input)
 
 	if (pitch < -89.0f)
 		pitch = -89.0f;
+}
 
+void Camera::CalcLookDirection()
+{
 	glm::vec3 lookDirection;
+
     lookDirection.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     lookDirection.y = sin(glm::radians(pitch));
     lookDirection.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
     viewFront = glm::normalize(lookDirection);
+
+	view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
 void Camera::ProcessKeyboardInput(Input* input)

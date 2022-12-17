@@ -98,6 +98,12 @@ void Graphics::CreateScene()
 
 	// Starship
 	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
+
+	// Create player ship
+	m_player = new Ship(
+		new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png"),
+		m_camera
+	);
 }
 
 void Graphics::AnimateScene(double time)
@@ -195,6 +201,25 @@ void Graphics::Render()
 		}
 		else
 			m_ship->Render(m_positionAttrib, m_colorAttrib);
+	}
+
+	// Renders the player ship
+	if (m_playerShip != NULL) {
+		glUniform1i(m_hasTexture, false);
+		glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_playerShip->GetModel()));
+		if (m_playerShip->hasTex) {
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, m_playerShip->getTextureID());
+			GLuint sampler = m_shader->GetUniformLocation("sp");
+			if (sampler == INVALID_UNIFORM_LOCATION)
+			{
+				printf("Sampler Not found not found\n");
+			}
+			glUniform1i(sampler, 0);
+			m_playerShip->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
+		}
+		else
+			m_playerShip->Render(m_positionAttrib, m_colorAttrib);
 	}
 
 	// Renders the sun

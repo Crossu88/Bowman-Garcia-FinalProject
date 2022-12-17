@@ -11,6 +11,7 @@ using namespace std;
 #include "object.h"
 #include "sphere.h"
 #include "mesh.h"
+#include "ship.h"
 
 #define numVBOs 2;
 #define numIBs 2;
@@ -56,6 +57,10 @@ class Graphics
     Sphere* m_planet;
     Sphere* m_moon;
     Mesh* m_ship;
+
+    // Player ship
+    Mesh* m_playerShip;
+    Ship* m_player;
 
     glm::vec3 m_systemOrigin = glm::vec3(0.0f);
 

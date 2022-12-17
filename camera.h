@@ -41,6 +41,9 @@ class Camera
     void ProcessInput();
     void ProcessMouseInput(Input* input);
     void ProcessKeyboardInput(Input* input);
+
+    // Helpers
+    void CalcLookDirection();
 };
 
 #endif /* CAMERA_H */
