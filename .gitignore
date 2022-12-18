@@ -3,3 +3,6 @@
 ################################################################################
 
 /x64/Debug
+/Dependencies/include/glm/out/build/x64-Debug
+/Debug
+/.vs
