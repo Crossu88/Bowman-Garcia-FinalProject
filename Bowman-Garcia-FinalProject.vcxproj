@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="engine.cpp" />
+    <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="graphics.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="main.cpp" />
@@ -160,6 +161,7 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="engine.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="graphics.h" />
     <ClInclude Include="graphics_headers.h" />
     <ClInclude Include="input.h" />

@@ -1,30 +1,3 @@
-﻿  camera.cpp
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(28,33): warning C4244: 'argument': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(63,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(64,16): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(86,46): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(87,26): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\camera.cpp(88,46): warning C4244: '=': conversion from 'double' to 'T', possible loss of data
-          with
-          [
-              T=float
-          ]
-  engine.cpp
-  graphics.cpp
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\graphics.cpp(178,33): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
-  main.cpp
-  ship.cpp
-  Generating Code...
+﻿  graphics.cpp
+E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\graphics.cpp(179,33): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
   Bowman-Garcia-FinalProject.vcxproj -> E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\x64\Debug\Bowman-Garcia-FinalProject.exe

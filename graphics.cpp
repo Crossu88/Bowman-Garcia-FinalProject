@@ -100,8 +100,7 @@ void Graphics::CreateScene()
 	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
 
 	// Player ship mesh
-	m_playerShip = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
-	m_playerShip->SetModel(m_playerShip->GetModel() * glm::scale(glm::vec3(0.01f)));
+	m_playerShip = new Mesh(glm::vec3(0.0f, 0.0f, 0.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
 
 	// Create player ship
 	m_player = new Ship(m_playerShip, m_camera);
@@ -167,9 +166,11 @@ glm::vec3 Graphics::CalculateOrbitPos(double time, double speed, glm::vec3 offse
 
 void Graphics::Update(double dt)
 {
-  // AnimateScene(dt);
   AnimateScene(glfwGetTime());
+
   m_camera->Update(dt);
+
+  m_player->Update(dt);
 }
 
 void Graphics::Render()

@@ -17,6 +17,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtc/random.hpp>
+#include <glm/gtx/norm.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 // Assimp
 #include <assimp/Importer.hpp>
