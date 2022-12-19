@@ -18,7 +18,7 @@ Sphere::Sphere(int prec, const char* fname) { // prec is precision, or number of
     setupBuffers();
 
     // load texture from file
-    m_texture = new Texture(fname);
+    m_texture = new Texture(fname, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 
     // check for a texture
     if (m_texture)
@@ -173,7 +173,8 @@ void Sphere::init(int prec) {
             texCoords.push_back(glm::vec2(s, t));
 
             // Push back a whole vertex
-            Vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(nx, ny, nz), glm::vec2(s, t)));
+            // Vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(nx, ny, nz), glm::vec2(s, t)));
+            Vertices.push_back(Vertex(glm::vec3(x, -z, y), glm::vec3(nx, -nz, ny), glm::vec2(s, t)));
 		}
 	}
 

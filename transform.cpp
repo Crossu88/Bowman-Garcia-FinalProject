@@ -29,7 +29,7 @@ glm::vec3* Transform::GetRotation() { return &m_rotation; }
 glm::vec3* Transform::GetScale() { return &m_scale; }
 glm::vec3 Transform::Forward() { return m_forward; }
 glm::vec3 Transform::Right() { return m_right; }
-glm::vec3 Transform::Up() { return m_forward; }
+glm::vec3 Transform::Up() { return m_up; }
 
 // Modifiers
 void Transform::SetParent(Transform* parent)
@@ -95,27 +95,18 @@ void Transform::UpdateTransform()
     auto rotRad = glm::eulerAngles(rotation);
     auto rotDeg = glm::degrees(rotRad);
 
+    // printf("Rotation Deg -- X: %f, Y: %f, Z: %f\n", rotDeg.x, rotDeg.y, rotDeg.z);
+    // printf("Rotation Rad -- X: %f, Y: %f, Z: %f\n", rotRad.x, rotRad.y, rotRad.z);
+
     m_position = translation;
     m_rotation = rotDeg;
     m_scale = scale;
 
-    m_forward.x = cos(rotRad.y) * cos(rotRad.x);
-    m_forward.y = sin(rotRad.x);
-    m_forward.z = sin(rotRad.y) * cos(rotRad.x);
+    glm::mat4 inverse = glm::inverse(m_transformMatrix);
+    m_forward = glm::normalize(glm::vec3(inverse[2]));
 
-    // m_forward.x = cos(m_rotation.x) * sin(m_rotation.y);
-    // m_forward.y = -sin(m_rotation.y);
-    // m_forward.z = cos(m_rotation.x) * cos(m_rotation.y);
-
-    // m_up.x = sin(m_rotation.x) * cos(m_rotation.y);
-    // m_up.y = cos(m_rotation.x);
-    // m_up.z = cos(m_rotation.x) * cos(m_rotation.y);
-
-    // m_right.x = cos(m_rotation.y);
-    // m_right.y = 0;
-    // m_right.z = -sin(m_rotation.y);
-
-    // m_up = glm::cross(m_forward, m_right);
+    // printf("Forward -- X: %f, Y: %f, Z: %f\n", m_forward.x, m_forward.y, m_forward.z);
+    // printf("Right -- X: %f, Y: %f, Z: %f\n", m_right.x, m_right.y, m_right.z);
 
     for (auto child : m_children)
         child->UpdateTransform();

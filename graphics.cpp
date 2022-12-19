@@ -31,8 +31,6 @@ bool Graphics::Initialize(int width, int height)
 	}
 #endif
 
-
-
 	// Init Camera
 	m_camera = new Camera();
 	if (!m_camera->Initialize(width, height))
@@ -76,7 +74,13 @@ bool Graphics::Initialize(int width, int height)
 	}
 
 	// Create the scene
-	CreateScene();
+	// CreateScene();
+
+	// Creates the scene's space skybox
+	CreateSkybox();
+
+	// Creates the PBR test
+	CreatePBR();
 
 	//enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -85,10 +89,181 @@ bool Graphics::Initialize(int width, int height)
 	return true;
 }
 
+void Graphics::CreatePBR()
+{
+	// pbrShader = new ShaderFile("shaders\\pbr.vs", "shaders\\pbr.fs");
+	// pbrShader = new ShaderFile("shaders\\hybridpbr.vs", "shaders\\hybridpbr.fs");
+	pbrShader = new ShaderFile("shaders\\texturepbr.vs", "shaders\\texturepbr.fs");
+
+	diffuse = (new Texture("assets\\rustediron\\diffuse.png"))->getTextureID();
+	normal = (new Texture("assets\\rustediron\\normal.png"))->getTextureID();
+	metallic = (new Texture("assets\\rustediron\\metallic.png"))->getTextureID();
+	roughness = (new Texture("assets\\rustediron\\roughness.png"))->getTextureID();
+	ao = (new Texture("assets\\rustediron\\ao.png"))->getTextureID();
+
+	pbrShader->use();
+	// pbrShader->setVec3("albedo", 0.5f, 0.0f, 0.0f);
+	// pbrShader->setFloat("ao", 1.0f);
+	pbrShader->setInt("albedoMap", 0);
+	pbrShader->setInt("norrmalMap", 1);
+	pbrShader->setInt("metallicMap", 2);
+	pbrShader->setInt("roughnessMap", 3);
+	pbrShader->setInt("aoMap", 4);
+
+	pbrShader->use();
+	pbrShader->setMat4("projection", m_camera->GetProjection());
+}
+
+void Graphics::RenderPBR()
+{
+	pbrShader->use();
+	pbrShader->setMat4("view", m_camera->GetView());
+	pbrShader->setVec3("camPos", m_camera->GetPosition());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, diffuse);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, normal);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, metallic);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, roughness);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, ao);
+
+	glm::mat4 model = glm::mat4(1.0f);
+	for (int row = 0; row < pbrRows; ++row)
+	{
+		pbrShader->setFloat("metallic", (float)row / (float)pbrRows);
+		for (int col = 0; col < pbrCols; ++col)
+		{
+			pbrShader->setFloat("roughness", glm::clamp((float)col / (float)pbrCols, 0.05f, 1.0f));
+
+			model = glm::mat4(1.0f);
+			model = glm::translate(model, glm::vec3(
+				(col - (pbrCols / 2)) * space,
+				(row - (pbrRows / 2)) * space,
+				0.0f
+			));
+
+			pbrShader->setMat4("model", model);
+			RenderSphere();
+		}
+	}
+
+	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+	{
+		glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+		newPos = lightPositions[i];
+		pbrShader->setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+		pbrShader->setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, newPos);
+		model = glm::scale(model, glm::vec3(0.5f));
+		pbrShader->setMat4("model", model);
+		RenderSphere();
+	}
+}
+
+void Graphics::RenderSphere()
+{
+    if (sphereVAO == 0)
+    {
+        glGenVertexArrays(1, &sphereVAO);
+
+        unsigned int vbo, ebo;
+        glGenBuffers(1, &vbo);
+        glGenBuffers(1, &ebo);
+
+        std::vector<glm::vec3> positions;
+        std::vector<glm::vec2> uv;
+        std::vector<glm::vec3> normals;
+        std::vector<unsigned int> indices;
+
+        const unsigned int X_SEGMENTS = 64;
+        const unsigned int Y_SEGMENTS = 64;
+        const float PI = 3.14159265359f;
+        for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+        {
+            for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
+            {
+                float xSegment = (float)x / (float)X_SEGMENTS;
+                float ySegment = (float)y / (float)Y_SEGMENTS;
+                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+                float yPos = std::cos(ySegment * PI);
+                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
+
+                positions.push_back(glm::vec3(xPos, yPos, zPos));
+                uv.push_back(glm::vec2(xSegment, ySegment));
+                normals.push_back(glm::vec3(xPos, yPos, zPos));
+            }
+        }
+
+        bool oddRow = false;
+        for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
+        {
+            if (!oddRow) // even rows: y == 0, y == 2; and so on
+            {
+                for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+                {
+                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                }
+            }
+            else
+            {
+                for (int x = X_SEGMENTS; x >= 0; --x)
+                {
+                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
+                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
+                }
+            }
+            oddRow = !oddRow;
+        }
+        indexCount = static_cast<unsigned int>(indices.size());
+
+        std::vector<float> data;
+        for (unsigned int i = 0; i < positions.size(); ++i)
+        {
+            data.push_back(positions[i].x);
+            data.push_back(positions[i].y);
+            data.push_back(positions[i].z);           
+            if (normals.size() > 0)
+            {
+                data.push_back(normals[i].x);
+                data.push_back(normals[i].y);
+                data.push_back(normals[i].z);
+            }
+            if (uv.size() > 0)
+            {
+                data.push_back(uv[i].x);
+                data.push_back(uv[i].y);
+            }
+        }
+        glBindVertexArray(sphereVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+        unsigned int stride = (3 + 2 + 3) * sizeof(float);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+        glEnableVertexAttribArray(1);        
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));        
+    }
+
+    glBindVertexArray(sphereVAO);
+    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
+}
+
 void Graphics::CreateScene()
 {
 	// The Sun
 	m_sun = new Sphere(65, "assets\\2k_sun.jpg");
+	// m_sun = new Sphere(65, "assets\\Cubemaps\\Galaxy-cubemap1.png");
 
 	// The Earth
 	m_planet = new Sphere(48, "assets\\2k_earth_daymap.jpg");
@@ -100,10 +275,109 @@ void Graphics::CreateScene()
 	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
 
 	// Player ship mesh
-	m_playerShip = new Mesh(glm::vec3(0.0f, 0.0f, 0.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
+	// m_playerShip = new Mesh(glm::vec3(0.0f, 0.0f, 0.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
 
 	// Create player ship
-	m_player = new Ship(m_playerShip, m_camera);
+	// m_player = new Ship(m_playerShip, m_camera);
+}
+
+void Graphics::CreateSkybox()
+{
+	skyboxShader = new ShaderFile("shaders\\skybox.vs", "shaders\\skybox.fs");
+
+	float skyboxVertices[] = {
+        // positions          
+        -1.0f,  1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+
+        -1.0f, -1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f,
+        -1.0f, -1.0f,  1.0f,
+
+        -1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f, -1.0f,
+         1.0f,  1.0f,  1.0f,
+         1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,
+        -1.0f,  1.0f, -1.0f,
+
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f, -1.0f,
+         1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f,  1.0f,
+         1.0f, -1.0f,  1.0f
+    };
+
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+	skyboxTexture = LoadCubemap("assets\\cubemaps\\milkyway.png");
+
+	skyboxShader->use();
+	skyboxShader->setInt("skybox", 0);
+}
+
+void Graphics::RenderSkybox()
+{
+	// Draw skybox
+	glDepthFunc(GL_LEQUAL);
+	skyboxShader->use();
+	glm::mat4 view = glm::mat4(glm::mat3(m_camera->GetView()));
+	skyboxShader->setMat4("view", view);
+	skyboxShader->setMat4("projection", m_camera->GetProjection());
+
+	// Skybox cube
+	glBindVertexArray(skyboxVAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS);
+}
+
+GLuint Graphics::LoadCubemap(const char* fileName)
+{
+	GLuint textureID;
+
+	textureID = SOIL_load_OGL_single_cubemap(
+		fileName,
+		"EWUDNS",
+		SOIL_LOAD_AUTO,
+		SOIL_CREATE_NEW_ID,
+		SOIL_FLAG_MIPMAPS
+	);
+
+	if (!textureID)
+		printf("Failed: Could not open cubemap texture file!\n");
+
+	return textureID;
 }
 
 void Graphics::AnimateScene(double time)
@@ -166,19 +440,18 @@ glm::vec3 Graphics::CalculateOrbitPos(double time, double speed, glm::vec3 offse
 
 void Graphics::Update(double dt)
 {
-  AnimateScene(glfwGetTime());
+//   AnimateScene(glfwGetTime());
 
   m_camera->Update(dt);
 
-  m_player->Update(dt);
+  if (m_player != NULL)
+	m_player->Update(dt);
 }
 
-void Graphics::Render()
-{
-	//clear the screen
-	glClearColor(0.5, 0.2, 0.2, 1.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//void Graphics::
 
+void Graphics::RenderScene()
+{
 	// Start the correct program
 	m_shader->Enable();
 
@@ -277,6 +550,22 @@ void Graphics::Render()
 		else
 			m_moon->Render(m_positionAttrib, m_colorAttrib);
 	}
+}
+
+void Graphics::Render()
+{
+	//clear the screen
+	glClearColor(0.5, 0.2, 0.2, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Renders the scene
+	// RenderScene();
+
+	// Render the scene's skybox
+	RenderSkybox();
+
+	// Render the PBR test
+	RenderPBR();
 
 	// Get any errors from OpenGL
 	auto error = glGetError();
@@ -286,7 +575,6 @@ void Graphics::Render()
 		std::cout << "Error initializing OpenGL! " << error << ", " << val << std::endl;
 	}
 }
-
 
 bool Graphics::collectShPrLocs() {
 	bool anyProblem = true;

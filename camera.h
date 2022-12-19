@@ -14,6 +14,9 @@ class Camera
 
     void Update(double dt);
 
+    // Accessors
+    glm::vec3 GetPosition() { return viewPos; };
+
     // Modifiers
     void SetSpeed(glm::vec3 newSpeed);
     void SetViewRotation(glm::vec3 newRot);
@@ -41,9 +44,9 @@ class Camera
     bool mouseNotSet = true;
 
     // Input processing
-    // void ProcessInput();
-    // void ProcessMouseInput(Input* input);
-    // void ProcessKeyboardInput(Input* input);
+    void ProcessInput();
+    void ProcessMouseInput(Input* input);
+    void ProcessKeyboardInput(Input* input);
 
     // Internal Functions
     void CalcLookDirection();

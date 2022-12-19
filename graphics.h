@@ -8,6 +8,7 @@ using namespace std;
 #include "graphics_headers.h"
 #include "camera.h"
 #include "shader.h"
+#include "ShaderFile.h"
 #include "object.h"
 #include "sphere.h"
 #include "mesh.h"
@@ -22,22 +23,65 @@ class Graphics
   public:
     Graphics();
     ~Graphics();
+
+    // Engine accessible functions
     bool Initialize(int width, int height);
     void Update(double dt);
     void Render();
 
-    void CreateScene();
-    void AnimateScene(double time);
-
+    // Accessors
     Camera* getCamera() { return m_camera; }
 
-    glm::vec3 CalculateOrbitPos(double time, double speed, glm::vec3 offset);
-
   private:
-    std::string ErrorString(GLenum error);
+    // Scene functions
+    void CreateScene();
+    void AnimateScene(double time);
+    void RenderScene();
 
-    bool collectShPrLocs();
+    // Skybox
+    void CreateSkybox();
+    void RenderSkybox();
+    GLuint LoadCubemap(const char* fileName);
 
+    ShaderFile* skyboxShader;
+	  GLuint skyboxVAO, skyboxVBO;
+    GLuint skyboxTexture;
+
+    // PBR Testing
+    void CreatePBR();
+    void RenderPBR();
+    void RenderSphere();
+
+    GLuint diffuse;
+    GLuint normal;
+    GLuint metallic;
+    GLuint roughness;
+    GLuint ao;
+
+    int pbrRows = 7;
+    int pbrCols = 7;
+    float space = 2.5f;
+
+    GLuint sphereVAO = 0;
+    GLuint indexCount;
+
+    ShaderFile* pbrShader;
+
+    glm::vec3 lightPositions[4] = {
+        glm::vec3(-10.0f,  10.0f, 10.0f),
+        glm::vec3( 10.0f,  10.0f, 10.0f),
+        glm::vec3(-10.0f, -10.0f, 10.0f),
+        glm::vec3( 10.0f, -10.0f, 10.0f),
+    };
+
+    glm::vec3 lightColors[4] = {
+        glm::vec3(300.0f, 300.0f, 300.0f),
+        glm::vec3(300.0f, 300.0f, 300.0f),
+        glm::vec3(300.0f, 300.0f, 300.0f),
+        glm::vec3(300.0f, 300.0f, 300.0f)
+    };
+
+    // Scene
     stack<glm::mat4> modelStack;
 
     Camera *m_camera;
@@ -65,6 +109,11 @@ class Graphics
     glm::vec3 m_systemOrigin = glm::vec3(0.0f);
 
     stack<glm::mat4> m_modelStack;
+
+    // Internal Functions
+    glm::vec3 CalculateOrbitPos(double time, double speed, glm::vec3 offset);
+    std::string ErrorString(GLenum error);
+    bool collectShPrLocs();
 };
 
 #endif /* GRAPHICS_H */

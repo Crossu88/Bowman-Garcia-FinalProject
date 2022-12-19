@@ -28,7 +28,7 @@ class Ship
         // Movement data
         float m_maxSpeed = 20.0f;
         float m_currentSpeed = 0.0f;
-        float m_acceleration = 10.0f;
+        float m_acceleration = 5.0f;
 
         glm::vec3 m_direction = glm::vec3(0.0f, 0.0f, 0.0f);
         glm::vec3 m_velocity = glm::vec3(0.0f, 0.0f, 0.0f);

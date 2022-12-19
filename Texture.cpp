@@ -1,9 +1,12 @@
 #include "Texture.h"
 
 // Constructs a texture and loads a file
-Texture::Texture(const char* fileName) {
-	loadTexture(fileName);
+Texture::Texture(const char* fileName, unsigned int flags) 
+{
+	loadTexture(fileName, flags);
 }
+
+Texture::Texture(const char* fileName) : Texture(fileName, SOIL_FLAG_MIPMAPS) { }
 
 // Constructs a texture object without loading a file
 Texture::Texture() {
@@ -12,14 +15,16 @@ Texture::Texture() {
 }
 
 // Loads and initializes a texture file
-bool Texture::loadTexture(const char* texFile) {
+bool Texture::loadTexture(const char* texFile, unsigned int flags = SOIL_FLAG_MIPMAPS) {
 
 	// Loads a texture through SOIL 2
 	m_TextureID = SOIL_load_OGL_texture(
 		texFile, 
 		SOIL_LOAD_AUTO, 
 		SOIL_CREATE_NEW_ID, 
-		SOIL_FLAG_INVERT_Y
+		flags
+		// SOIL_FLAG_MIPMAPS
+		//SOIL_FLAG_INVERT_Y
 		);
 
 	// If the texture file fails to load, print an error

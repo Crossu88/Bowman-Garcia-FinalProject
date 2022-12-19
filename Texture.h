@@ -6,9 +6,10 @@ class Texture
 {
 
 public:
-	Texture();
+	Texture(const char* fileName, unsigned int flags);
 	Texture(const char* fileName);
-	bool loadTexture(const char* texFile);
+	Texture();
+	bool loadTexture(const char* texFile, unsigned int flags);
 	GLuint getTextureID() { return m_TextureID; }
 
 private:

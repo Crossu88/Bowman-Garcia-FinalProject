@@ -49,21 +49,11 @@ void Ship::UpdateCamera()
 
 void Ship::UpdatePhysics(double deltaTime)
 {
-    auto dirLength = glm::length2(m_direction);
-    auto velLength = glm::length2(m_velocity);
+    if (m_direction.z != 0.0f)
+        m_velocity += m_direction.z * m_shipTransform->Forward() * m_acceleration * static_cast<float>(deltaTime);
 
-    if (dirLength > 0)
-        m_velocity += glm::normalize(m_direction) * m_acceleration * static_cast<float>(deltaTime);
-
-    // if (dirLength <= 0 && velLength < 0.01f * 0.01f)
-    //     m_velocity = glm::vec3(0.0f);
-
-    if (dirLength <= 0 && velLength > 0)
+    if (m_direction.z == 0.0f && glm::length2(m_velocity) > 0.0f)
         m_velocity += glm::normalize(m_velocity) * m_acceleration * 0.5f * static_cast<float>(deltaTime);
-
-    if (velLength > m_maxSpeed * m_maxSpeed)
-        m_velocity = glm::normalize(m_velocity) * m_maxSpeed;
-
 
     auto position = *m_shipTransform->GetLocalPosition();
     m_shipTransform->Translate(m_velocity * 2.0f * static_cast<float>(deltaTime));
@@ -88,10 +78,10 @@ void Ship::ProcessKeyboardInput(Input* input)
         speed -= glm::vec3(0.0f, 0.0f, 1.0f);
     if (input->GetKeyDown(GLFW_KEY_S) || input->GetKeyDown(GLFW_KEY_DOWN))
         speed += glm::vec3(0.0f, 0.0f, 1.0f);
-    if (input->GetKeyDown(GLFW_KEY_D) || input->GetKeyDown(GLFW_KEY_RIGHT))
-        speed -= glm::vec3(1.0f, 0.0f, 0.0f);
-    if (input->GetKeyDown(GLFW_KEY_A) || input->GetKeyDown(GLFW_KEY_LEFT))
-        speed += glm::vec3(1.0f, 0.0f, 0.0f);
+    // if (input->GetKeyDown(GLFW_KEY_D) || input->GetKeyDown(GLFW_KEY_RIGHT))
+    //     speed -= glm::vec3(1.0f, 0.0f, 0.0f);
+    // if (input->GetKeyDown(GLFW_KEY_A) || input->GetKeyDown(GLFW_KEY_LEFT))
+    //     speed += glm::vec3(1.0f, 0.0f, 0.0f);
 
     m_direction = speed;
 }
@@ -119,7 +109,9 @@ void Ship::ProcessMouseInput(Input* input)
 	xoffset *= sensitivity;
 	yoffset *= sensitivity;
 
-    m_shipTransform->Rotate(glm::vec3(0.0f, xoffset, 0.0f));
+    // m_shipTransform->Rotate(glm::vec3(0.0f, xoffset, 0.0f));
+    m_shipTransform->Rotate(glm::vec3(yoffset, xoffset, 0.0f));
+    // m_shipTransform->SetLocalRotation(glm::vec3(yoffset, xoffset, 0.0f));
 
     auto viewAng = *m_shipTransform->GetLocalRotation();
 
@@ -128,12 +120,4 @@ void Ship::ProcessMouseInput(Input* input)
 
 	if (viewAng.x < -89.0f)
 		m_shipTransform->SetLocalRotation(glm::vec3(-89.0f, viewAng.y, viewAng.z));
-
-	// viewAng += glm::vec3(yoffset, xoffset, 0.0f);
-
-	// if (viewAng.x > 89.0f)
-	// 	viewAng.x = 89.0f;
-
-	// if (viewAng.x < -89.0f)
-	// 	viewAng.x = -89.0f;
 }

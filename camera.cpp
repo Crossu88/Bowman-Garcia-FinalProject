@@ -22,11 +22,11 @@ bool Camera::Initialize(int w, int h)
 
 void Camera::Update(double dt)
 {
-	// ProcessInput();
+	ProcessInput();
 	CalcLookDirection();
 
-	// viewPos += velocity * glm::vec3(dt);
-	// view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
+	viewPos += velocity * glm::vec3(dt);
+	view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
 void Camera::SetViewRotation(glm::vec3 rotation)
@@ -65,61 +65,67 @@ void Camera::CalcLookDirection()
 	view = glm::lookAt(viewPos, viewPos + viewFront, viewUp);
 }
 
-// void Camera::ProcessInput()
-// {
-// 	auto input = Input::GetInstance();
+void Camera::ProcessInput()
+{
+	auto input = Input::GetInstance();
 
-// 	ProcessMouseInput(input);
-// 	ProcessKeyboardInput(input);
-// }
+	ProcessMouseInput(input);
+	ProcessKeyboardInput(input);
+}
 
-// void Camera::ProcessMouseInput(Input* input)
-// {
-// 	auto cursorPos = input->GetCursorPos();
+void Camera::ProcessMouseInput(Input* input)
+{
+	auto cursorPos = input->GetCursorPos();
 	
-// 	double xpos = cursorPos.x;
-// 	double ypos = cursorPos.y;
+	double xpos = cursorPos.x;
+	double ypos = cursorPos.y;
 
-// 	if (mouseNotSet)
-// 	{
-// 		lastX = xpos;
-// 		lastY = ypos;
-// 		mouseNotSet = false;
-// 	}
+	if (mouseNotSet)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		mouseNotSet = false;
+	}
 
-// 	float xoffset = xpos - lastX;
-// 	float yoffset = lastY - ypos;
-// 	lastX = xpos;
-// 	lastY = ypos;
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
 
-// 	float sensitivity = 0.1f;
-// 	xoffset *= sensitivity;
-// 	yoffset *= sensitivity;
+	float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
 
-// 	viewAng += glm::vec3(yoffset, xoffset, 0.0f);
+	viewAng += glm::vec3(yoffset, xoffset, 0.0f);
 
-// 	if (viewAng.x > 89.0f)
-// 		viewAng.x = 89.0f;
+	if (viewAng.x > 89.0f)
+		viewAng.x = 89.0f;
 
-// 	if (viewAng.x < -89.0f)
-// 		viewAng.x = -89.0f;
-// }
+	if (viewAng.x < -89.0f)
+		viewAng.x = -89.0f;
 
-// void Camera::ProcessKeyboardInput(Input* input)
-// {
-//     glm::vec3 speed = glm::vec3(0.0f);
+    glm::vec3 direction;
+    direction.x = cos(glm::radians(viewAng.y)) * cos(glm::radians(viewAng.x));
+    direction.y = sin(glm::radians(viewAng.x));
+    direction.z = sin(glm::radians(viewAng.y)) * cos(glm::radians(viewAng.x));
+    viewFront = glm::normalize(direction);	glm::vec3 viewDir;
+}
 
-//     if (input->GetKeyDown(GLFW_KEY_W) || input->GetKeyDown(GLFW_KEY_UP))
-//         speed -= glm::vec3(0.0f, 0.0f, 10.0f);
-//     if (input->GetKeyDown(GLFW_KEY_S) || input->GetKeyDown(GLFW_KEY_DOWN))
-//         speed += glm::vec3(0.0f, 0.0f, 10.0f);
-//     if (input->GetKeyDown(GLFW_KEY_A) || input->GetKeyDown(GLFW_KEY_LEFT))
-//         speed += glm::vec3(10.0f, 0.0f, 0.0f);
-//     if (input->GetKeyDown(GLFW_KEY_D) || input->GetKeyDown(GLFW_KEY_RIGHT))
-//         speed -= glm::vec3(10.0f, 0.0f, 0.0f);
+void Camera::ProcessKeyboardInput(Input* input)
+{
+    glm::vec3 speed = glm::vec3(0.0f);
 
-// 	SetSpeed(speed);
-// }
+    if (input->GetKeyDown(GLFW_KEY_W) || input->GetKeyDown(GLFW_KEY_UP))
+        speed -= glm::vec3(0.0f, 0.0f, 10.0f);
+    if (input->GetKeyDown(GLFW_KEY_S) || input->GetKeyDown(GLFW_KEY_DOWN))
+        speed += glm::vec3(0.0f, 0.0f, 10.0f);
+    if (input->GetKeyDown(GLFW_KEY_A) || input->GetKeyDown(GLFW_KEY_LEFT))
+        speed += glm::vec3(10.0f, 0.0f, 0.0f);
+    if (input->GetKeyDown(GLFW_KEY_D) || input->GetKeyDown(GLFW_KEY_RIGHT))
+        speed -= glm::vec3(10.0f, 0.0f, 0.0f);
+
+	SetSpeed(speed);
+}
 
 // Getters
 
