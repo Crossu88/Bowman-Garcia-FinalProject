@@ -1,3 +1,0 @@
-﻿  graphics.cpp
-E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\Bowman-Garcia-FinalProject\graphics.cpp(558,33): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
-  Bowman-Garcia-FinalProject.vcxproj -> E:\Projects\OpenGL\CS480-Projects\Bowman-Garcia-FinalProject\x64\Debug\Bowman-Garcia-FinalProject.exe
