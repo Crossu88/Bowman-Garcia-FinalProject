@@ -1,20 +1,32 @@
 #include "sphere.h"
 
-Sphere::Sphere()
+Sphere::Sphere(int precision, const char* diffuse, const char* normal)
 {
-    init(48);
+    SetupSphere(precision);
     setupBuffers();
+
+    m_material = new Material(diffuse, normal, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y, 0.5f, 0.5f, 1.0f);
+
+    // model = glm::mat4(1.0f);
+    // model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+    // model = glm::scale(model, glm::vec3(10.0f));
+    setupModelMatrix(glm::vec3(0.0f, 0.0f, 1.0f), 0.0f, 1.0f);
 }
 
-Sphere::Sphere(int prec) { // prec is precision, or number of slices
-    init(prec);
-    setupBuffers();
-    hasTex = false;
-}
+// Sphere::Sphere()
+// {
+//     init(48);
+//     setupBuffers();
+// }
+
+// Sphere::Sphere(int prec) { // prec is precision, or number of slices
+//     init(prec);
+//     setupBuffers();
+//     hasTex = false;
+// }
 
 Sphere::Sphere(int prec, const char* fname) { // prec is precision, or number of slices
-    init(prec);
-    setupVertices();
+    SetupSphere(prec);
     setupBuffers();
 
     // load texture from file
@@ -27,34 +39,33 @@ Sphere::Sphere(int prec, const char* fname) { // prec is precision, or number of
         hasTex = false;
 }
 
+// void Sphere::Render(GLint positionAttribLoc, GLint colorAttribLoc)
+// {
+//     glBindVertexArray(vao);
 
-void Sphere::Render(GLint positionAttribLoc, GLint colorAttribLoc)
-{
-    glBindVertexArray(vao);
+//     // Enable Vertext Attributes
+//     glEnableVertexAttribArray(positionAttribLoc);
+//     glEnableVertexAttribArray(colorAttribLoc);
 
-    // Enable Vertext Attributes
-    glEnableVertexAttribArray(positionAttribLoc);
-    glEnableVertexAttribArray(colorAttribLoc);
+//     // Bind your VBO buffer(s) and then setup vertex attribute pointers
+//     glBindBuffer(GL_ARRAY_BUFFER, VB);
 
-    // Bind your VBO buffer(s) and then setup vertex attribute pointers
-    glBindBuffer(GL_ARRAY_BUFFER, VB);
+// 	// Set vertex attribute pointers to the load correct data
+//     glVertexAttribPointer(positionAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+//     glVertexAttribPointer(colorAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
-	// Set vertex attribute pointers to the load correct data
-    glVertexAttribPointer(positionAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-    glVertexAttribPointer(colorAttribLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+//     // Bind your index buffer
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IB);
 
-    // Bind your index buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IB);
+//     // Render
+// 	glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
 
-    // Render
-	glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
+//     // Disable Vertex Attribuates
+//     glDisableVertexAttribArray(positionAttribLoc);
+//     glDisableVertexAttribArray(colorAttribLoc);
+// }
 
-    // Disable Vertex Attribuates
-    glDisableVertexAttribArray(positionAttribLoc);
-    glDisableVertexAttribArray(colorAttribLoc);
-}
-
-void Sphere::Render(GLint posAttribLoc, GLint colAttribLoc, GLint tcAttribLoc, GLint hasTextureLoc)
+void Sphere::LegacyRender(GLint posAttribLoc, GLint colAttribLoc, GLint tcAttribLoc, GLint hasTextureLoc)
 {
     glBindVertexArray(vao);
 
@@ -93,12 +104,43 @@ void Sphere::Render(GLint posAttribLoc, GLint colAttribLoc, GLint tcAttribLoc, G
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Sphere::setupVertices() {
-    std::vector<int> ind = getIndices();
-    std::vector<glm::vec3> vert = getVertices();
-    std::vector<glm::vec2> tex = getTexCoords();
-    std::vector<glm::vec3> norm = getNormals();
+void Sphere::Render()
+{
+    // printf("Rendering sphere");
+
+    m_material->Render(model);
+
+    GLuint posAttribute = 0; // Material::GetShader()->getAttributeLocation("aPos");
+    GLuint normAttribute = 1; //Material::GetShader()->getAttributeLocation("aNormal");
+    GLuint tcAttribute = 2; //Material::GetShader()->getAttributeLocation("aTexCoords");
+
+    glBindVertexArray(vao);
+
+    glEnableVertexAttribArray(posAttribute);
+    glEnableVertexAttribArray(normAttribute);
+    glEnableVertexAttribArray(tcAttribute);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VB);
+
+    glVertexAttribPointer(posAttribute, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glVertexAttribPointer(normAttribute, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(tcAttribute, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texcoord));
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IB);
+
+    glDrawElements(GL_TRIANGLES, Indices.size(), GL_UNSIGNED_INT, 0);
+
+    glDisableVertexAttribArray(posAttribute);
+    glDisableVertexAttribArray(normAttribute);
+    glDisableVertexAttribArray(tcAttribute);
 }
+
+// void Sphere::setupVertices() {
+//     std::vector<int> ind = getIndices();
+//     std::vector<glm::vec3> vert = getVertices();
+//     std::vector<glm::vec2> tex = getTexCoords();
+//     std::vector<glm::vec3> norm = getNormals();
+// }
 
 void Sphere::setupBuffers() {
     // For OpenGL 3
@@ -125,9 +167,9 @@ void Sphere::SetModel(glm::mat4 matModel) {
     model = matModel;
 }
 
-float Sphere::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
+// float Sphere::toRadians(float degrees) { return (degrees * 2.0f * 3.14159f) / 360.0f; }
 
-void Sphere::init(int prec) {
+void Sphere::SetupSphere(int prec) {
     // Sourced from http://www.songho.ca/opengl/gl_sphere.html#:~:text=cpp%20class.&text=In%20order%20to%20draw%20the,triangle%20strip%20cannot%20be%20used
 
     // Variable setup
@@ -139,14 +181,14 @@ void Sphere::init(int prec) {
     float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
     float s, t;                                     // vertex texCoord
 
-	float sectorStep = 2 * M_PI / sectorCount;      // Angle between each horizontal slice
-	float stackStep = M_PI / stackCount;            // Angle between each vertical
+	float sectorStep = 2 * glm::pi<float>() / sectorCount;      // Angle between each horizontal slice
+	float stackStep = glm::pi<float>() / stackCount;            // Angle between each vertical
 	float sectorAngle, stackAngle;                  // Angle between each 
 
     // Generate the vertices, normals and uv coordinates of the sphere
 	for(int i = 0; i <= stackCount; ++i)
 	{
-		stackAngle = M_PI / 2 - i * stackStep;      // starting from pi/2 to -pi/2
+		stackAngle = glm::pi<float>() / 2 - i * stackStep;      // starting from pi/2 to -pi/2
 		xy = radius * cosf(stackAngle);             // r * cos(u)
 		z = radius * sinf(stackAngle);              // r * sin(u)
 
@@ -159,18 +201,18 @@ void Sphere::init(int prec) {
 			// vertex position (x, y, z)
 			x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
 			y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
-            vertices.push_back(glm::vec3(x, y, z));
+            // vertices.push_back(glm::vec3(x, y, z));
 
             // normalized vertex normal (nx, ny, nz)
             nx = x * lengthInv;
             ny = y * lengthInv;
             nz = z * lengthInv;
-            normals.push_back(glm::vec3(nx, ny, nz));
+            // normals.push_back(glm::vec3(nx, ny, nz));
 
             // vertex tex coord (s, t) range between [0, 1]
             s = (float)j / sectorCount;
             t = (float)i / stackCount;
-            texCoords.push_back(glm::vec2(s, t));
+            // texCoords.push_back(glm::vec2(s, t));
 
             // Push back a whole vertex
             // Vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(nx, ny, nz), glm::vec2(s, t)));
@@ -208,9 +250,9 @@ void Sphere::init(int prec) {
 }
 
 // accessors
-int Sphere::getNumVertices() { return numVertices; }
-int Sphere::getNumIndices() { return numIndices; }
-std::vector<int> Sphere::getIndices() { return indices; }
-std::vector<glm::vec3> Sphere::getVertices() { return vertices; }
-std::vector<glm::vec2> Sphere::getTexCoords() { return texCoords; }
-std::vector<glm::vec3> Sphere::getNormals() { return normals; }
+// int Sphere::getNumVertices() { return numVertices; }
+// int Sphere::getNumIndices() { return numIndices; }
+// std::vector<int> Sphere::getIndices() { return indices; }
+// std::vector<glm::vec3> Sphere::getVertices() { return vertices; }
+// std::vector<glm::vec2> Sphere::getTexCoords() { return texCoords; }
+// std::vector<glm::vec3> Sphere::getNormals() { return normals; }

@@ -149,6 +149,17 @@ public:
     {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
+    // ------------------------------------------------------------------------
+    GLint getAttributeLocation(const std::string& name)
+    {
+        GLuint Location = glGetUniformLocation(ID, name.c_str());
+
+        if (Location == -1) {
+            fprintf(stderr, "Warning! Unable to get the location of attribute '%s'\n", name.c_str());
+        }
+
+        return Location;
+    }
 
 private:
     // utility function for checking shader compilation/linking errors.

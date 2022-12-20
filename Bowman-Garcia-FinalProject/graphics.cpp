@@ -73,14 +73,17 @@ bool Graphics::Initialize(int width, int height)
 		printf("Some shader attribs not located!\n");
 	}
 
+	// Initialize PBR shader
+	Material::InitializeShader(m_camera);
+
 	// Create the scene
-	// CreateScene();
+	CreateScene();
 
 	// Creates the scene's space skybox
 	CreateSkybox();
 
 	// Creates the PBR test
-	CreatePBR();
+	// CreatePBR();
 
 	//enable depth testing
 	glEnable(GL_DEPTH_TEST);
@@ -89,197 +92,111 @@ bool Graphics::Initialize(int width, int height)
 	return true;
 }
 
-void Graphics::CreatePBR()
-{
-	// pbrShader = new ShaderFile("shaders\\pbr.vs", "shaders\\pbr.fs");
-	// pbrShader = new ShaderFile("shaders\\hybridpbr.vs", "shaders\\hybridpbr.fs");
-	pbrShader = new ShaderFile("shaders\\texturepbr.vs", "shaders\\texturepbr.fs");
-
-	diffuse = (new Texture("assets\\rustediron\\diffuse.png"))->getTextureID();
-	normal = (new Texture("assets\\rustediron\\normal.png"))->getTextureID();
-	metallic = (new Texture("assets\\rustediron\\metallic.png"))->getTextureID();
-	roughness = (new Texture("assets\\rustediron\\roughness.png"))->getTextureID();
-	ao = (new Texture("assets\\rustediron\\ao.png"))->getTextureID();
-
-	pbrShader->use();
-	// pbrShader->setVec3("albedo", 0.5f, 0.0f, 0.0f);
-	// pbrShader->setFloat("ao", 1.0f);
-	pbrShader->setInt("albedoMap", 0);
-	pbrShader->setInt("normalMap", 1);
-	pbrShader->setInt("metallicMap", 2);
-	pbrShader->setInt("roughnessMap", 3);
-	pbrShader->setInt("aoMap", 4);
-
-	pbrShader->use();
-	pbrShader->setMat4("projection", m_camera->GetProjection());
-}
-
-void Graphics::RenderPBR()
-{
-	pbrShader->use();
-	pbrShader->setMat4("view", m_camera->GetView());
-	pbrShader->setVec3("camPos", m_camera->GetPosition());
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, diffuse);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, normal);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, metallic);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, roughness);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, ao);
-
-	glm::mat4 model = glm::mat4(1.0f);
-	for (int row = 0; row < pbrRows; ++row)
-	{
-		pbrShader->setFloat("metallic", (float)row / (float)pbrRows);
-		for (int col = 0; col < pbrCols; ++col)
-		{
-			pbrShader->setFloat("roughness", glm::clamp((float)col / (float)pbrCols, 0.05f, 1.0f));
-
-			model = glm::mat4(1.0f);
-			model = glm::translate(model, glm::vec3(
-				(col - (pbrCols / 2)) * space,
-				(row - (pbrRows / 2)) * space,
-				0.0f
-			));
-
-			pbrShader->setMat4("model", model);
-			RenderSphere();
-		}
-	}
-
-	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
-	{
-		glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-		newPos = lightPositions[i];
-		pbrShader->setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
-		pbrShader->setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
-
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, newPos);
-		model = glm::scale(model, glm::vec3(0.5f));
-		pbrShader->setMat4("model", model);
-		RenderSphere();
-	}
-}
-
-void Graphics::RenderSphere()
-{
-    if (sphereVAO == 0)
-    {
-        glGenVertexArrays(1, &sphereVAO);
-
-        unsigned int vbo, ebo;
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
-
-        std::vector<glm::vec3> positions;
-        std::vector<glm::vec2> uv;
-        std::vector<glm::vec3> normals;
-        std::vector<unsigned int> indices;
-
-        const unsigned int X_SEGMENTS = 64;
-        const unsigned int Y_SEGMENTS = 64;
-        const float PI = 3.14159265359f;
-        for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
-        {
-            for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
-            {
-                float xSegment = (float)x / (float)X_SEGMENTS;
-                float ySegment = (float)y / (float)Y_SEGMENTS;
-                float xPos = std::cos(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-                float yPos = std::cos(ySegment * PI);
-                float zPos = std::sin(xSegment * 2.0f * PI) * std::sin(ySegment * PI);
-
-                positions.push_back(glm::vec3(xPos, yPos, zPos));
-                uv.push_back(glm::vec2(xSegment, ySegment));
-                normals.push_back(glm::vec3(xPos, yPos, zPos));
-            }
-        }
-
-        bool oddRow = false;
-        for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
-        {
-            if (!oddRow) // even rows: y == 0, y == 2; and so on
-            {
-                for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
-                {
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                }
-            }
-            else
-            {
-                for (int x = X_SEGMENTS; x >= 0; --x)
-                {
-                    indices.push_back((y + 1) * (X_SEGMENTS + 1) + x);
-                    indices.push_back(y       * (X_SEGMENTS + 1) + x);
-                }
-            }
-            oddRow = !oddRow;
-        }
-        indexCount = static_cast<unsigned int>(indices.size());
-
-        std::vector<float> data;
-        for (unsigned int i = 0; i < positions.size(); ++i)
-        {
-            data.push_back(positions[i].x);
-            data.push_back(positions[i].y);
-            data.push_back(positions[i].z);           
-            if (normals.size() > 0)
-            {
-                data.push_back(normals[i].x);
-                data.push_back(normals[i].y);
-                data.push_back(normals[i].z);
-            }
-            if (uv.size() > 0)
-            {
-                data.push_back(uv[i].x);
-                data.push_back(uv[i].y);
-            }
-        }
-        glBindVertexArray(sphereVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-        unsigned int stride = (3 + 2 + 3) * sizeof(float);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
-        glEnableVertexAttribArray(1);        
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));        
-    }
-
-    glBindVertexArray(sphereVAO);
-    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
-}
-
 void Graphics::CreateScene()
 {
 	// The Sun
 	m_sun = new Sphere(65, "assets\\2k_sun.jpg");
-	// m_sun = new Sphere(65, "assets\\Cubemaps\\Galaxy-cubemap1.png");
+
+	// Mercury
+	m_mercury = new Solarbody("assets\\Mercury.jpg", "assets\\Mercury-n.jpg");
+	m_mercury->SetOrbitParameters(5.5f, 14.46f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_mercury->SetBodyParameters(0.22f, 15.0f);
+	m_mercury->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_mercury);
+
+	// Venus
+	m_venus = new Solarbody("assets\\Venus.jpg", "assets\\Venus-n.jpg");
+	m_venus->SetOrbitParameters(8.0f, 37.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_venus->SetBodyParameters(0.5f, 30.0f);
+	m_venus->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_venus);
 
 	// The Earth
-	m_planet = new Sphere(48, "assets\\2k_earth_daymap.jpg");
+	m_earth = new Solarbody("assets\\2k_earth_daymap.jpg", "assets\\2k_earth_daymap-n.jpg");
+	m_earth->SetOrbitParameters(10.0f, 60.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_earth->SetBodyParameters(0.5f, 5.0f);
+	m_planets.push_back(m_earth);
 
-	// The moon
-	m_moon = new Sphere(48, "assets\\2k_moon.jpg");
+	// The Moon - a child of earth
+	m_moon = new Solarbody("assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_moon->SetOrbitParameters(1.0f, 4.43f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_moon->SetBodyParameters(0.12f, 0.65f);
+	m_moon->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
 
-	// Starship
-	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
+	m_earth->AddChild(m_moon);
 
-	// Player ship mesh
-	// m_playerShip = new Mesh(glm::vec3(0.0f, 0.0f, 0.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");
+	// Mars
+	m_mars = new Solarbody("assets\\Mars.jpg", "assets\\Mars-n.jpg");
+	m_mars->SetOrbitParameters(13.0f, 112.93f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_mars->SetBodyParameters(0.25f, 5.1f);
+	m_mars->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_mars);
 
-	// Create player ship
-	// m_player = new Ship(m_playerShip, m_camera);
+	// Jupiter
+	m_jupiter = new Solarbody("assets\\Jupiter.jpg", "assets\\Jupiter-n.jpg");
+	m_jupiter->SetOrbitParameters(22.0f, 212.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_jupiter->SetBodyParameters(5.6f, 2.09f);
+	m_jupiter->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_jupiter);
+
+	// Saturn
+	m_saturn = new Solarbody("assets\\Saturn.jpg", "assets\\Uranus-n.jpg");
+	m_saturn->SetOrbitParameters(32.0f, 331.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_saturn->SetBodyParameters(4.76f, 2.1875f);
+	m_saturn->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_saturn);
+
+	// Uranus
+	m_uranus = new Solarbody("assets\\Uranus.jpg", "assets\\Uranus-n.jpg");
+	m_uranus->SetOrbitParameters(38.0f, 441.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_uranus->SetBodyParameters(2.125f, 3.6f);
+	m_uranus->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_uranus);
+
+	// Neptune
+	m_neptune = new Solarbody("assets\\Neptune.jpg", "assets\\Neptune-n.jpg");
+	m_neptune->SetOrbitParameters(42.0f, 502.0f, glm::vec3(1.0f, 0.0f, 1.0f));
+	m_neptune->SetBodyParameters(1.96f, 3.35f);
+	m_neptune->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_neptune);
+
+	// Comet
+	m_comet = new Solarbody("assets\\Haumea.jpg", "assets\\Haumea-n.jpg");
+	m_comet->SetOrbitParameters(12.0f, 20.0f, glm::vec3(0.7f, 0.2f, 1.0f));
+	m_comet->SetBodyParameters(0.1f, 3.35f);
+	m_comet->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+	m_planets.push_back(m_comet);
+
+	// Asteroid
+	m_asteroid = new Solarbody("assets\\Ceres.jpg", "assets\\Ceres-n.jpg", 5);
+	m_asteroid->SetOrbitParameters(0.1f, 99999.0f, glm::vec3(0.0f, 0.0f, 0.0f));
+	m_asteroid->SetBodyParameters(10.0f, 99999.0f);
+	m_asteroid->GetMaterial()->SetMaterialProperties(0.2f, 1.0f, 1.0f);
+
+	// Procedurally generate asteroid positions
+	GenerateAsteroids(200, 16.0f);
+	GenerateAsteroids(400, 48.0f);
+
+	for (Solarbody* planet : m_planets)
+		planet->Update(0.0);
 }
+
+
+void Graphics::GenerateAsteroids(int count, float distance)
+{
+	float twoPi = 2.0f * glm::pi<float>();
+	for (int i = 0; i < count; i++)
+	{
+		float randomTheta = glm::linearRand(0.0f, twoPi);
+		float randomDist = glm::linearRand(0.9f, 1.1f);
+		float randomHeight = glm::linearRand(-0.1f, 0.1f);
+		m_asteroidPositions.push_back(distance * randomDist * glm::vec3(cos(randomTheta), 0.0f, sin(randomTheta)) + glm::vec3(0.0f, randomHeight, 0.0f));
+
+		float randomSize = glm::linearRand(0.1f, 0.3f);
+		m_asteroidSizes.push_back(randomSize);
+	}
+}
+
 
 void Graphics::CreateSkybox()
 {
@@ -382,55 +299,18 @@ GLuint Graphics::LoadCubemap(const char* fileName)
 
 void Graphics::AnimateScene(double time)
 {
-  // Storage variables
-  float fTime = (float) time;
-  glm::mat4 currentTransform;
+	for (Solarbody* planet : m_planets)
+		planet->Update(time);
 
-  // Create the origin matrix transformation
-  auto originMat = glm::translate(glm::mat4(1.0f), m_systemOrigin);
+	float fTime = (float) time;
 
-  // Push the planet positions onto the stack
-  m_modelStack.push(originMat);
-  m_modelStack.push(m_modelStack.top() * glm::translate(glm::mat4(1.0f), CalculateOrbitPos(time, 0.3, 5.0f * glm::vec3(1.0f, 0.0f, 1.0f))));
-  m_modelStack.push(m_modelStack.top() * glm::translate(glm::mat4(1.0f), CalculateOrbitPos(time, 0.5, 1.8f * glm::vec3(1.0f, 0.0f, 1.0f))));
-  m_modelStack.push(m_modelStack.top() * glm::translate(glm::mat4(1.0f), CalculateOrbitPos(time, 0.6, 0.8f * glm::vec3(1.0f, 0.0f, 1.0f))));
+  	// Animate the sun
+  	glm::mat4 currentTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f));
+  	currentTransform *= glm::rotate(glm::mat4(1.0f), 0.4f * fTime, glm::vec3(0.0f, 1.0f, 0.0f));
+  	currentTransform *= glm::scale(glm::vec3(9.0f));
 
-  // Animate the ship
-  currentTransform = m_modelStack.top();
-  currentTransform *= glm::rotate(glm::mat4(1.0f), -(0.6f * fTime), glm::vec3(0.0f, 1.0f, 0.0f));
-  currentTransform *= glm::scale(glm::vec3(0.005f));
-  m_modelStack.pop();
-  
-  if (m_ship != NULL)
-	m_ship->SetModel(currentTransform);
-
-
-  // Animate the first moon
-  currentTransform = m_modelStack.top();
-  currentTransform *= glm::rotate(glm::mat4(1.0f), 0.65f * fTime, glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)));
-  currentTransform *= glm::scale(glm::vec3(0.4f));
-  m_modelStack.pop();
-
-  if (m_moon != NULL)
-	m_moon->SetModel(currentTransform);
-
-  // Animate the planet
-  currentTransform = m_modelStack.top();
-  currentTransform *= glm::rotate(glm::mat4(1.0f), 0.5f * fTime, glm::vec3(0.0f, 1.0f, 0.0f));
-  currentTransform *= glm::scale(glm::vec3(0.55f));
-  m_modelStack.pop();
-
-  if (m_planet != NULL)
-    m_planet->SetModel(currentTransform);
-
-  // Animate the sun
-  currentTransform = m_modelStack.top();
-  currentTransform *= glm::rotate(glm::mat4(1.0f), 0.4f * fTime, glm::vec3(0.0f, 1.0f, 0.0f));
-  currentTransform *= glm::scale(glm::vec3(2.0f));
-  m_modelStack.pop();
-
-  if (m_sun != NULL)
-    m_sun->SetModel(currentTransform);
+	if (m_sun != NULL)
+	    m_sun->SetModel(currentTransform);
 }
 
 glm::vec3 Graphics::CalculateOrbitPos(double time, double speed, glm::vec3 offset)
@@ -440,15 +320,13 @@ glm::vec3 Graphics::CalculateOrbitPos(double time, double speed, glm::vec3 offse
 
 void Graphics::Update(double dt)
 {
-//   AnimateScene(glfwGetTime());
+  AnimateScene(glfwGetTime());
 
   m_camera->Update(dt);
 
   if (m_player != NULL)
 	m_player->Update(dt);
 }
-
-//void Graphics::
 
 void Graphics::RenderScene()
 {
@@ -459,43 +337,24 @@ void Graphics::RenderScene()
 	glUniformMatrix4fv(m_projectionMatrix, 1, GL_FALSE, glm::value_ptr(m_camera->GetProjection()));
 	glUniformMatrix4fv(m_viewMatrix, 1, GL_FALSE, glm::value_ptr(m_camera->GetView()));
 
-	// Renders the ship
-	if (m_ship != NULL) {
-		glUniform1i(m_hasTexture, false);
-		glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_ship->GetModel()));
-		if (m_ship->hasTex) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, m_ship->getTextureID());
-			GLuint sampler = m_shader->GetUniformLocation("sp");
-			if (sampler == INVALID_UNIFORM_LOCATION)
-			{
-				printf("Sampler Not found not found\n");
-			}
-			glUniform1i(sampler, 0);
-			m_ship->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
-		}
-		else
-			m_ship->Render(m_positionAttrib, m_colorAttrib);
-	}
-
 	// Renders the player ship
-	if (m_playerShip != NULL) {
-		glUniform1i(m_hasTexture, false);
-		glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_playerShip->GetModel()));
-		if (m_playerShip->hasTex) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, m_playerShip->getTextureID());
-			GLuint sampler = m_shader->GetUniformLocation("sp");
-			if (sampler == INVALID_UNIFORM_LOCATION)
-			{
-				printf("Sampler Not found not found\n");
-			}
-			glUniform1i(sampler, 0);
-			m_playerShip->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
-		}
-		else
-			m_playerShip->Render(m_positionAttrib, m_colorAttrib);
-	}
+	// if (m_playerShip != NULL) {
+	// 	glUniform1i(m_hasTexture, false);
+	// 	glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_playerShip->GetModel()));
+	// 	if (m_playerShip->hasTex) {
+	// 		glActiveTexture(GL_TEXTURE0);
+	// 		glBindTexture(GL_TEXTURE_2D, m_playerShip->getTextureID());
+	// 		GLuint sampler = m_shader->GetUniformLocation("sp");
+	// 		if (sampler == INVALID_UNIFORM_LOCATION)
+	// 		{
+	// 			printf("Sampler Not found not found\n");
+	// 		}
+	// 		glUniform1i(sampler, 0);
+	// 		m_playerShip->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
+	// 	}
+	// 	else
+	// 		m_playerShip->Render(m_positionAttrib, m_colorAttrib);
+	// }
 
 	// Renders the sun
 	if (m_sun != NULL) {
@@ -509,47 +368,29 @@ void Graphics::RenderScene()
 				printf("Sampler Not found not found\n");
 			}
 			glUniform1i(sampler, 0);
-			m_sun->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
+			m_sun->LegacyRender(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
 		}
-		else
-			m_sun->Render(m_positionAttrib, m_colorAttrib);
 	}
 
-	// Renders the planet
-	if (m_planet != NULL) {
-		glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_planet->GetModel()));
-		if (m_planet->hasTex) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, m_planet->getTextureID());
-			GLuint sampler = m_shader->GetUniformLocation("sp");
-			if (sampler == INVALID_UNIFORM_LOCATION)
-			{
-				printf("Sampler Not found not found\n");
-			}
-			glUniform1i(sampler, 0);
-			m_planet->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
-		}
-		else
-			m_planet->Render(m_positionAttrib, m_colorAttrib);
+	// Renders the planets and their children (moons)
+	for (Solarbody* planet : m_planets)
+		planet->Render();
+
+
+	
+	int asteroidCount = glm::min(m_asteroidPositions.size(), m_asteroidSizes.size());
+	for (int i = 0; i < asteroidCount; i++)
+	{
+		float size = m_asteroidSizes.at(i);
+		glm::vec3 pos = m_asteroidPositions.at(i);
+		m_asteroid->SetBodyParameters(size, 9999.0f);
+
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), pos);
+
+		m_asteroid->Update(1.0, model);
+		m_asteroid->Render();
 	}
 
-	// Render the moon
-	if (m_moon != NULL) {
-		glUniformMatrix4fv(m_modelMatrix, 1, GL_FALSE, glm::value_ptr(m_moon->GetModel()));
-		if (m_moon->hasTex) {
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, m_moon->getTextureID());
-			GLuint sampler = m_shader->GetUniformLocation("sp");
-			if (sampler == INVALID_UNIFORM_LOCATION)
-			{
-				printf("Sampler Not found not found\n");
-			}
-			glUniform1i(sampler, 0);
-			m_moon->Render(m_positionAttrib, m_colorAttrib, m_tcAttrib, m_hasTexture);
-		}
-		else
-			m_moon->Render(m_positionAttrib, m_colorAttrib);
-	}
 }
 
 void Graphics::Render()
@@ -559,13 +400,13 @@ void Graphics::Render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Renders the scene
-	// RenderScene();
+	RenderScene();
 
 	// Render the scene's skybox
 	RenderSkybox();
 
 	// Render the PBR test
-	RenderPBR();
+	//RenderPBR();
 
 	// Get any errors from OpenGL
 	auto error = glGetError();

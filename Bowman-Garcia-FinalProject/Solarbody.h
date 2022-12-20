@@ -4,28 +4,38 @@
 #include "graphics_headers.h"
 #include "sphere.h"
 #include "texture.h"
+#include "Material.h"
 #include "ShaderFile.h"
 
 class Solarbody
 {
     public:
-        Solarbody(Solarbody* parent, float radius, float orbitTime, glm::vec3 offset, const char* diffusePath, const char* normalPath);
-        Solarbody(const char* diffusePath, const char* normalPath);
+        Solarbody(const char* diffusePath, const char* normalPath, int precision = 48);
         ~Solarbody();
 
-        void Update();
+        void SetOrbitParameters(float distance, float time, glm::vec3 offset);
+        void SetBodyParameters(float radius, float spinSpeed);
+
+        Material* GetMaterial() { return m_body->GetMaterial(); }
+
+        void Update(double time, glm::mat4 origin = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f)));
         void Render();
 
+        void AddChild(Solarbody* child);
+
     private:
-        Solarbody* m_parent;
+        std::vector<Solarbody*> m_children;
         Sphere* m_body;
 
         float m_radius;
+        float m_speed;
+
+        float m_orbitInitial;
+        float m_orbitDistance;
         float m_orbitTime;
         glm::vec3 m_orbitOffset;
 
-        Texture* m_diffuse;
-        Texture* m_normal;
+        glm::vec3 CalculateOrbitPos(double time);
 
 };
 

@@ -5,10 +5,14 @@
 
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #define GLM_ENABLE_EXPERIMENTAL 
+// #define _USE_MATH_DEFINES
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GL/glu.h>
+
+// Math library
+// #include <math.h>
 
 // GLM for matricies
 #define GLM_FORCE_RADIANS
@@ -19,6 +23,7 @@
 #include <glm/gtc/random.hpp>
 #include <glm/gtx/norm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/constants.hpp>
 
 // Assimp
 #include <assimp/Importer.hpp>

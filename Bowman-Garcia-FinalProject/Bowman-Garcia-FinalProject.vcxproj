@@ -154,6 +154,7 @@
     <ClCompile Include="object.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="ship.cpp" />
+    <ClCompile Include="Solarbody.cpp" />
     <ClCompile Include="sphere.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="transform.cpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="ShaderFile.h" />
     <ClInclude Include="ship.h" />
+    <ClInclude Include="Solarbody.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="transform.h" />

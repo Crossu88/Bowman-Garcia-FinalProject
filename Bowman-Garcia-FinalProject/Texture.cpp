@@ -29,7 +29,7 @@ bool Texture::loadTexture(const char* texFile, unsigned int flags = SOIL_FLAG_MI
 
 	// If the texture file fails to load, print an error
 	if (!m_TextureID) {
-		printf("Failed: Could not open texture file!\n");
+		printf("Failed: Could not open texture file: %s!\n", texFile);
 		return false;
 	}
 

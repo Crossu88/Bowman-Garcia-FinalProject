@@ -8,7 +8,7 @@ int main(int argc, char** argv)
 
 
 	// Create the engine
-	Engine* engine = new Engine("Tutorial Window Name", 800, 600);
+	Engine* engine = new Engine("Tutorial Window Name", 1920, 1080);
 
 	// Engine initialization
 
