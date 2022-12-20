@@ -261,15 +261,69 @@ void Graphics::RenderSphere()
 
 void Graphics::CreateScene()
 {
-	// The Sun
 	m_sun = new Sphere(65, "assets\\2k_sun.jpg");
-	// m_sun = new Sphere(65, "assets\\Cubemaps\\Galaxy-cubemap1.png");
+
+	// Mercury
+	m_mercury = new SolarBody( "assets\\Mercury.jpg", "assets\\Mercury-n.jpg");
+
+	// Venus
+	m_venus = new SolarBody("assets\\Venus.jpg", "assets\\Venus-n.jpg");
 
 	// The Earth
-	m_planet = new Sphere(48, "assets\\2k_earth_daymap.jpg");
+	m_planet = new SolarBody("assets\\2k_earth_daymap.jpg", "assets\\2k_earth_daymap-n.jpg");
 
-	// The moon
-	m_moon = new Sphere(48, "assets\\2k_moon.jpg");
+	// The  Earth's moon
+	m_moon = new SolarBody("assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Mars
+	m_mars = new SolarBody("assets\\Mars.jpg", "assets\\Mars-n.jpg");
+
+	// Mars' moons
+	m_deimos = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_phobos = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Jupiter
+	m_jupiter = new SolarBody("assets\\Jupiter.jpg", "assets\\Jupiter-n.jpg");
+
+	// Jupiter's moons
+	m_jmoon1 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_jmoon2 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_jmoon3 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_jmoon4 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_jmoon5 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Saturn
+	m_saturn = new SolarBody( "assets\\Saturn.jpg", "assets\\Saturn-n.jpg");
+
+	// Saturn's moons
+	m_smoon1 = new SolarBody("assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_smoon2 = new SolarBody( "assets\\2k_moon.jpg","assets\\2k_moon-n.jpg");
+	m_smoon3 = new SolarBody( "assets\\2k_moon.jpg","assets\\2k_moon-n.jpg");
+	m_smoon4 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_smoon5 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Uranus
+	m_uranus = new SolarBody("assets\\Uranus.jpg", "assets\\Uranus-n.jpg");
+
+	//Uranas' moons
+	m_umoon1 = new SolarBody("assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_umoon2 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_umoon3 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_umoon4 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_umoon5 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Neptune
+	m_neptune = new SolarBody( "assets\\Neptune.jpg", "assets\\Neptune-n.jpg");
+
+	// Neptune's moons
+	m_nmoon1 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_nmoon2 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_nmoon3 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_nmoon4 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+	m_nmoon5 = new SolarBody( "assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
+
+	// Halley's comet
+	m_halley = new SolarBody("assets\\2k_moon.jpg", "assets\\2k_moon-n.jpg");
 
 	// Starship
 	m_ship = new Mesh(glm::vec3(2.0f, 3.0f, -5.0f), "assets\\SpaceShip-1.obj", "assets\\SpaceShip-1.png");

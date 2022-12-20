@@ -13,6 +13,7 @@ using namespace std;
 #include "sphere.h"
 #include "mesh.h"
 #include "ship.h"
+#include "SoloarBody.h"
 
 #define numVBOs 2;
 #define numIBs 2;
@@ -98,8 +99,40 @@ class Graphics
 
     // Celestial Models
     Sphere* m_sun;
-    Sphere* m_planet;
-    Sphere* m_moon;
+    SolarBody* m_mercury;
+    SolarBody* m_venus;
+    SolarBody* m_planet;
+    SolarBody* m_mars;
+    SolarBody* m_jupiter;
+    SolarBody* m_saturn;
+    SolarBody* m_uranus;
+    SolarBody* m_neptune;
+
+    SolarBody* m_moon;
+    SolarBody* m_deimos;
+    SolarBody* m_phobos;
+    SolarBody* m_jmoon1;
+    SolarBody* m_jmoon2;
+    SolarBody* m_jmoon3;
+    SolarBody* m_jmoon4;
+    SolarBody* m_jmoon5;
+    SolarBody* m_smoon1;
+    SolarBody* m_smoon2;
+    SolarBody* m_smoon3;
+    SolarBody* m_smoon4;
+    SolarBody* m_smoon5;
+    SolarBody* m_umoon1;
+    SolarBody* m_umoon2;
+    SolarBody* m_umoon3;
+    SolarBody* m_umoon4;
+    SolarBody* m_umoon5;
+    SolarBody* m_nmoon1;
+    SolarBody* m_nmoon2;
+    SolarBody* m_nmoon3;
+    SolarBody* m_nmoon4;
+    SolarBody* m_nmoon5;
+
+    SolarBody* m_halley;
     Mesh* m_ship;
 
     // Player ship
